@@ -47,7 +47,8 @@ jobs:
           set -euo pipefail
           root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
           export LD_LIBRARY_PATH="$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-          exec "$root/engine/strata" --config "$root/config/strata-single-2080ti-22g.json" "$@"
+          cd "$root"
+          exec python3 -c 'import json, os, sys; cfg=json.load(open(sys.argv[1], encoding="utf-8")); exe=cfg["exe"]; os.execv(exe, [exe, *cfg.get("args", []), *sys.argv[2:]])' "$root/config/strata-single-2080ti-22g.json" "$@"
           EOF
           chmod +x offline-bundle/run-strata.sh
           cat > offline-bundle/README.txt <<'EOF'
