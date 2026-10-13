@@ -1,0 +1,41 @@
+name: Build CUDA 13 sm_75
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-sm75:
+    runs-on: ubuntu-24.04
+    container:
+      image: nvidia/cuda:13.0.0-devel-ubuntu24.04
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates cmake g++ git ninja-build
+
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Configure CUDA 13 sm_75
+        run: |
+          cmake -S . -B build-sm75 -G Ninja \
+            -DSTRATA_ENABLE_CUDA=ON \
+            -DSTRATA_BUILD_TESTS=OFF \
+            -DSTRATA_NATIVE_EXPERTS=ON \
+            -DCMAKE_CUDA_ARCHITECTURES=75 \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Strata engine
+        run: cmake --build build-sm75 --target strata --parallel
+
+      - name: Upload sm_75 engine
+        uses: actions/upload-artifact@v4
+        with:
+          name: strata-sm75-ubuntu-cuda13
+          path: build-sm75/strata
+          if-no-files-found: error
