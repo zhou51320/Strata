@@ -38,15 +38,8 @@ if [ ! -x "$exe" ]; then
   exit 126
 fi
 cd "$root"
-exec "$exe" \
-  --pack ../Strata-data/packs/swift-iq3_xxs \
-  --native ../Strata-data/models/swift-IQ3_XXS/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf \
-  --ple-gguf ../Strata-data/models/swift-IQ3_XXS/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf \
-  --expert-profile "$root/data/expert-profile.bin" \
-  --expert-cache auto --prefill auto --spec 4 --mtp ../Strata-data/mtp/rt \
-  --max-context 262144 --kv int8 --resident-experts --vram-reserve-mib 700 \
-  --ple-row-cache 8388608 --ple-inflight 1024 --conversation-cache-mib 13312 \
-  --conversation-cache-slots 4 --spec-min-p 0.70 --aux-cpus auto "$@"
+exec python3 -m serve.server --engine strata \
+  --config "$root/config/strata-single-2080ti-22g.json" "$@"
 EOF
 chmod 755 "$out/run-strata.sh"
 cat > "$out/README.txt" <<'EOF'
