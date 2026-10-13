@@ -33,46 +33,9 @@ jobs:
       - name: Build Strata engine
         run: cmake --build build-sm75 --target strata --parallel
 
-      - name: Assemble offline Ubuntu bundle
-        run: |
-          rm -rf offline-bundle
-          mkdir -p offline-bundle/engine offline-bundle/config offline-bundle/lib
-          cp build-sm75/strata offline-bundle/engine/strata
-          cp config/strata-single-2080ti-22g.example.json offline-bundle/config/strata-single-2080ti-22g.json
-          cp -L /usr/local/cuda/lib64/libcudart.so.13* offline-bundle/lib/
-          cp -L /usr/local/cuda/lib64/libcublas.so.13* offline-bundle/lib/
-          cp -L /usr/local/cuda/lib64/libcublasLt.so.13* offline-bundle/lib/
-          cat > offline-bundle/run-strata.sh <<'EOF'
-          #!/bin/sh
-          set -eu
-          root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-          export LD_LIBRARY_PATH="$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-          cd "$root"
-          exec python3 -c 'import json, os, sys; cfg=json.load(open(sys.argv[1], encoding="utf-8")); exe=cfg["exe"]; os.execv(exe, [exe, *cfg.get("args", []), *sys.argv[2:]])' "$root/config/strata-single-2080ti-22g.json" "$@"
-          EOF
-          chmod +x offline-bundle/run-strata.sh
-          cat > offline-bundle/README.txt <<'EOF'
-          Strata RTX 2080 Ti single-card offline bundle
-
-          Run from the extracted directory:
-            ./run-strata.sh
-
-          The model, tokenizer, prepared pack, expert profile and MTP files are not included.
-          Keep the Strata-data directory beside this bundle, or edit config/strata-single-2080ti-22g.json.
-          This bundle targets NVIDIA Turing sm_75 and includes CUDA 13 runtime/cuBLAS libraries.
-          EOF
-          tar -C offline-bundle -czf strata-sm75-ubuntu-cuda13-offline.tar.gz .
-
       - name: Upload sm_75 engine
         uses: actions/upload-artifact@v4
         with:
           name: strata-sm75-ubuntu-cuda13
           path: build-sm75/strata
-          if-no-files-found: error
-
-      - name: Upload offline Ubuntu bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: strata-sm75-ubuntu-cuda13-offline
-          path: strata-sm75-ubuntu-cuda13-offline.tar.gz
           if-no-files-found: error
