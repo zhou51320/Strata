@@ -17,6 +17,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates cmake g++ git ninja-build
+            python3 python3-pip
 
       - name: Check out source
         uses: actions/checkout@v4
@@ -33,9 +34,57 @@ jobs:
       - name: Build Strata engine
         run: cmake --build build-sm75 --target strata --parallel
 
+      - name: Assemble offline Ubuntu bundle
+        run: |
+          rm -rf offline-bundle
+          mkdir -p offline-bundle/engine offline-bundle/config offline-bundle/data offline-bundle/lib offline-bundle/python offline-bundle/tools
+          cp build-sm75/strata offline-bundle/engine/strata
+          chmod 755 offline-bundle/engine/strata
+          cp config/strata-single-2080ti-22g.example.json offline-bundle/config/strata-single-2080ti-22g.json
+          cp data/expert-profile.bin offline-bundle/data/expert-profile.bin
+          cp -a serve offline-bundle/serve
+          cp tools/strata_tokenizer.py offline-bundle/tools/strata_tokenizer.py
+          python3 -m pip install --no-cache-dir --target offline-bundle/python \
+            numpy jinja2 regex pyyaml tqdm requests pillow psutil
+          cp -L /usr/local/cuda/lib64/libcudart.so.13* offline-bundle/lib/
+          cp -L /usr/local/cuda/lib64/libcublas.so.13* offline-bundle/lib/
+          cp -L /usr/local/cuda/lib64/libcublasLt.so.13* offline-bundle/lib/
+          cat > offline-bundle/run-strata.sh <<'EOF'
+          #!/bin/sh
+          set -eu
+          root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+          export PYTHONPATH="$root/python:$root/tools:$root${PYTHONPATH:+:$PYTHONPATH}"
+          export LD_LIBRARY_PATH="$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          export STRATA_BF16_TC=1
+          export STRATA_SELECT_SIMT=1
+          cd "$root"
+          exec python3 -m serve.server --engine strata \
+            --config "$root/config/strata-single-2080ti-22g.json" "$@"
+          EOF
+          chmod 755 offline-bundle/run-strata.sh
+          cat > offline-bundle/README.txt <<'EOF'
+          Strata RTX 2080 Ti single-card offline bundle
+
+          Put Strata-data next to this directory:
+            ../Strata-data/models/
+            ../Strata-data/packs/swift-iq3_xxs/
+            ../Strata-data/mtp/rt/
+
+          Run: ./run-strata.sh
+          This bundle includes the Python server dependencies and CUDA 13 runtime libraries.
+          EOF
+          tar -C offline-bundle -czf strata-sm75-ubuntu-cuda13-offline.tar.gz .
+
       - name: Upload sm_75 engine
         uses: actions/upload-artifact@v4
         with:
           name: strata-sm75-ubuntu-cuda13
           path: build-sm75/strata
+          if-no-files-found: error
+
+      - name: Upload offline Ubuntu bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: strata-sm75-ubuntu-cuda13-offline
+          path: strata-sm75-ubuntu-cuda13-offline.tar.gz
           if-no-files-found: error
