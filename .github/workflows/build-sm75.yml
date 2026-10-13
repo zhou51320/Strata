@@ -43,9 +43,9 @@ jobs:
           cp -L /usr/local/cuda/lib64/libcublas.so.13* offline-bundle/lib/
           cp -L /usr/local/cuda/lib64/libcublasLt.so.13* offline-bundle/lib/
           cat > offline-bundle/run-strata.sh <<'EOF'
-          #!/usr/bin/env bash
-          set -euo pipefail
-          root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+          #!/bin/sh
+          set -eu
+          root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
           export LD_LIBRARY_PATH="$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           cd "$root"
           exec python3 -c 'import json, os, sys; cfg=json.load(open(sys.argv[1], encoding="utf-8")); exe=cfg["exe"]; os.execv(exe, [exe, *cfg.get("args", []), *sys.argv[2:]])' "$root/config/strata-single-2080ti-22g.json" "$@"
