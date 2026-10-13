@@ -34,13 +34,26 @@ jobs:
       - name: Build Strata engine
         run: cmake --build build-sm75 --target strata --parallel
 
+      - name: Configure and build CUDA vision encoder
+        run: |
+          cmake -S tools/vision -B build-vision -G Ninja \
+            -DLLAMA_DIR="$GITHUB_WORKSPACE/third_party/llama.cpp" \
+            -DSTRATA_VISION_CUDA=ON \
+            -DSTRATA_PORTABLE=OFF \
+            -DCMAKE_CUDA_ARCHITECTURES=75 \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-vision --target strata-vision --parallel
+
       - name: Assemble offline Ubuntu bundle
         run: |
           rm -rf offline-bundle
           mkdir -p offline-bundle/engine offline-bundle/config offline-bundle/data offline-bundle/lib offline-bundle/python offline-bundle/tools
           cp build-sm75/strata offline-bundle/engine/strata
+          cp build-vision/bin/strata-vision offline-bundle/engine/strata-vision
           chmod 755 offline-bundle/engine/strata
+          chmod 755 offline-bundle/engine/strata-vision
           cp config/strata-single-2080ti-22g.example.json offline-bundle/config/strata-single-2080ti-22g.json
+          cp config/strata-single-2080ti-22g-vision.example.json offline-bundle/config/strata-single-2080ti-22g-vision.json
           cp data/expert-profile.bin offline-bundle/data/expert-profile.bin
           cp -a serve offline-bundle/serve
           cp tools/strata_tokenizer.py offline-bundle/tools/strata_tokenizer.py
@@ -58,8 +71,8 @@ jobs:
           export STRATA_BF16_TC=1
           export STRATA_SELECT_SIMT=1
           cd "$root"
-          exec python3 -m serve.server --engine strata \
-            --config "$root/config/strata-single-2080ti-22g.json" "$@"
+          config=${STRATA_CONFIG:-$root/config/strata-single-2080ti-22g.json}
+          exec python3 -m serve.server --engine strata --config "$config" "$@"
           EOF
           chmod 755 offline-bundle/run-strata.sh
           cat > offline-bundle/README.txt <<'EOF'
@@ -72,6 +85,7 @@ jobs:
 
           Run: ./run-strata.sh
           This bundle includes the Python server dependencies and CUDA 13 runtime libraries.
+          For image input, use config/strata-single-2080ti-22g-vision.json.
           EOF
           tar -C offline-bundle -czf strata-sm75-ubuntu-cuda13-offline.tar.gz .
 

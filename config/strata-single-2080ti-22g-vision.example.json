@@ -1,0 +1,31 @@
+{
+ "exe": "engine/strata",
+ "args": [
+  "--pack", "../Strata-data/packs/swift-iq3_xxs",
+  "--native", "../Strata-data/models/swift-IQ3_XXS/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
+  "--ple-gguf", "../Strata-data/models/swift-IQ3_XXS/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
+  "--expert-profile", "data/expert-profile.bin",
+  "--expert-cache", "auto", "--prefill", "auto", "--spec", "4",
+  "--mtp", "../Strata-data/mtp/rt", "--max-context", "262144", "--kv", "int8",
+  "--resident-experts", "--vram-reserve-mib", "1400", "--ple-row-cache", "8388608",
+  "--ple-inflight", "1024", "--conversation-cache-mib", "13312",
+  "--conversation-cache-slots", "4", "--spec-min-p", "0.70", "--aux-cpus", "auto",
+  "--vision"
+ ],
+ "cwd": ".",
+ "tokenizer": "../Strata-data/packs/swift-iq3_xxs/tokenizer",
+ "model_name": "qwen-local",
+ "log": "strata-single-2080ti-vision.log",
+ "lib_dirs": ["/usr/local/cuda-13.0/lib64"],
+ "port": 8000,
+ "gpu": 0,
+ "host": "127.0.0.1",
+ "vision": {
+  "exe": "engine/strata-vision",
+  "mmproj": "../Strata-data/models/swift-IQ3_XXS/mmproj-Swift-Qwen3.8-Flash-Next-BF16.gguf",
+  "model": "../Strata-data/models/swift-IQ3_XXS/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
+  "gpu": true,
+  "max_tokens": 1024
+ },
+ "env": {"STRATA_BF16_TC": "1", "STRATA_SELECT_SIMT": "1"}
+}
