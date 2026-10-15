@@ -6524,7 +6524,10 @@ def main() -> int:
     ap.add_argument("--script", action="append",
                     help="the mock engine's answer (default: a short greeting); given more than once, requests get "
                          "them in turn and the last one repeats")
-    ap.add_argument("--port", type=int, default=8095)
+    # Keep None until the config is loaded: a parser default of 8095 would
+    # always override the config's "port" value.  Command-line --port still
+    # has precedence, then the JSON config, then the historical 8095 default.
+    ap.add_argument("--port", type=int, default=None)
     ap.add_argument("--gpu", help="the GPU to run on, as nvidia-smi numbers them, or several for a layer split "
                                   "(\"0,2\"; also \"gpu\" in the config)")
     ap.add_argument("--tokenizer", default=str(ROOT / "pack/full/tokenizer"),
@@ -6561,6 +6564,7 @@ def main() -> int:
                          "[{\"gpus\": [0, 1]}, {\"gpus\": [2, 3]}])")
     a = ap.parse_args()
     cfg = json.loads(Path(a.config).read_text(encoding="utf-8-sig")) if a.config else {}   # Notepad adds a BOM
+    a.port = a.port if a.port is not None else cfg.get("port", 8095)
     lift_reasoning_effort_arg(cfg)
     if a.replicas is not None:
         cfg["replicas"] = a.replicas
