@@ -15,6 +15,12 @@ project(strata_vision C CXX)
 set(LLAMA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/llama.cpp" CACHE PATH "llama.cpp checkout")
 option(STRATA_VISION_CUDA "run the vision encoder on the GPU (builds ggml-cuda)" OFF)
 option(STRATA_PORTABLE "build for other PCs: AVX2 baseline, static MSVC runtime" ON)
+# The image encoder is a single-GPU helper.  NCCL is only useful for a distributed
+# llama.cpp server; letting ggml-cuda auto-detect it makes the standalone helper
+# require libnccl.so.2 even though the main Strata engine does not (#2080 Ti
+# offline bundles).  Keep this opt-in for anyone deliberately building a
+# multi-GPU vision helper.
+option(STRATA_VISION_NCCL "link NCCL into the vision encoder" OFF)
 if(STRATA_PORTABLE AND MSVC)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 endif()
@@ -52,6 +58,7 @@ else()
 endif()
 set(GGML_BACKEND_DL OFF CACHE BOOL "" FORCE)
 set(GGML_CUDA ${STRATA_VISION_CUDA} CACHE BOOL "" FORCE)
+set(GGML_CUDA_ENABLE_NCCL ${STRATA_VISION_NCCL} CACHE BOOL "" FORCE)
 
 add_subdirectory(${LLAMA_DIR} llama EXCLUDE_FROM_ALL)
 
@@ -59,3 +66,10 @@ add_executable(strata-vision strata_vision.cpp)
 target_link_libraries(strata-vision PRIVATE mtmd llama)
 target_compile_features(strata-vision PRIVATE cxx_std_17)
 set_target_properties(strata-vision PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+if(UNIX AND NOT APPLE)
+  # Offline bundles place both executables in engine/ and CUDA libraries in
+  # lib/.  Keep direct invocation and the Python-spawned helper identical.
+  set_target_properties(strata-vision PROPERTIES
+    BUILD_RPATH "$ORIGIN/../lib"
+    INSTALL_RPATH "$ORIGIN/../lib")
+endif()

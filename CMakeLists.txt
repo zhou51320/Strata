@@ -604,6 +604,14 @@ if(STRATA_ENABLE_CUDA OR STRATA_ENABLE_HIP)
   add_executable(strata src/program/generate.cpp)
   target_include_directories(strata PRIVATE ${_strata_gpu_include_directories})
   target_link_libraries(strata PRIVATE strata_engine strata_prefill strata_spec ${_strata_gpu_runtime_target})
+  if(UNIX AND NOT APPLE)
+    # The offline Ubuntu bundle keeps CUDA runtime libraries beside the
+    # executables' parent (engine/../lib).  This also makes direct invocation
+    # independent of the caller's shell environment.
+    set_target_properties(strata PROPERTIES
+      BUILD_RPATH "$ORIGIN/../lib"
+      INSTALL_RPATH "$ORIGIN/../lib")
+  endif()
 
   if(STRATA_ENABLE_HIP)
     enable_testing()

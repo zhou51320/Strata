@@ -39,6 +39,8 @@ jobs:
           cmake -S tools/vision -B build-vision -G Ninja \
             -DLLAMA_DIR="$GITHUB_WORKSPACE/build-sm75/_deps/strata_llamacpp-src" \
             -DSTRATA_VISION_CUDA=ON \
+            -DSTRATA_VISION_NCCL=OFF \
+            -DGGML_CUDA_ENABLE_NCCL=OFF \
             -DSTRATA_PORTABLE=OFF \
             -DCMAKE_CUDA_ARCHITECTURES=75 \
             -DCMAKE_BUILD_TYPE=Release
@@ -62,6 +64,12 @@ jobs:
           cp -L /usr/local/cuda/lib64/libcudart.so.13* offline-bundle/lib/
           cp -L /usr/local/cuda/lib64/libcublas.so.13* offline-bundle/lib/
           cp -L /usr/local/cuda/lib64/libcublasLt.so.13* offline-bundle/lib/
+          # The single-card vision helper must not need NCCL.  Fail the build
+          # if a future llama.cpp/CMake change accidentally reintroduces it.
+          if ldd build-vision/bin/strata-vision | grep -q 'libnccl\.so'; then
+            echo 'error: strata-vision unexpectedly links NCCL' >&2
+            exit 1
+          fi
           cat > offline-bundle/run-strata.sh <<'EOF'
           #!/bin/sh
           set -eu
@@ -75,6 +83,10 @@ jobs:
           exec python3 -m serve.server --engine strata --config "$config" "$@"
           EOF
           chmod 755 offline-bundle/run-strata.sh
+          LD_LIBRARY_PATH="$GITHUB_WORKSPACE/offline-bundle/lib" \
+            offline-bundle/engine/strata-vision --help >/tmp/strata-vision-help.txt
+          LD_LIBRARY_PATH="$GITHUB_WORKSPACE/offline-bundle/lib" \
+            offline-bundle/engine/strata --help >/tmp/strata-help.txt
           cat > offline-bundle/README.txt <<'EOF'
           Strata RTX 2080 Ti single-card offline bundle
 
