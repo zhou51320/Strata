@@ -40,7 +40,7 @@ jobs:
             -DLLAMA_DIR="$GITHUB_WORKSPACE/build-sm75/_deps/strata_llamacpp-src" \
             -DSTRATA_VISION_CUDA=ON \
             -DSTRATA_VISION_NCCL=OFF \
-            -DGGML_CUDA_ENABLE_NCCL=OFF \
+            -DGGML_CUDA_NCCL=OFF \
             -DSTRATA_PORTABLE=OFF \
             -DCMAKE_CUDA_ARCHITECTURES=75 \
             -DCMAKE_BUILD_TYPE=Release
