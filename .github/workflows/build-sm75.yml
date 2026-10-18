@@ -77,6 +77,7 @@ jobs:
           export PYTHONPATH="$root/python:$root/tools:$root${PYTHONPATH:+:$PYTHONPATH}"
           export LD_LIBRARY_PATH="$root/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
           export STRATA_BF16_TC=1
+          export STRATA_SM75_PERF=1
           export STRATA_SELECT_SIMT=1
           cd "$root"
           config=${STRATA_CONFIG:-$root/config/strata-single-2080ti-22g.json}
