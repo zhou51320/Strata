@@ -28,6 +28,7 @@ jobs:
             -DSTRATA_ENABLE_CUDA=ON \
             -DSTRATA_BUILD_TESTS=OFF \
             -DSTRATA_NATIVE_EXPERTS=ON \
+            -DSTRATA_PORTABLE=ON \
             -DCMAKE_CUDA_ARCHITECTURES=75 \
             -DCMAKE_BUILD_TYPE=Release
 
@@ -41,7 +42,7 @@ jobs:
             -DSTRATA_VISION_CUDA=ON \
             -DSTRATA_VISION_NCCL=OFF \
             -DGGML_CUDA_NCCL=OFF \
-            -DSTRATA_PORTABLE=OFF \
+            -DSTRATA_PORTABLE=ON \
             -DCMAKE_CUDA_ARCHITECTURES=75 \
             -DCMAKE_BUILD_TYPE=Release
           cmake --build build-vision --target strata-vision --parallel
@@ -79,6 +80,7 @@ jobs:
           export STRATA_BF16_TC=1
           export STRATA_SM75_PERF=1
           export STRATA_SELECT_SIMT=1
+          export STRATA_FORCE_ISA=avx2
           cd "$root"
           config=${STRATA_CONFIG:-$root/config/strata-single-2080ti-22g.json}
           exec python3 -m serve.server --engine strata --config "$config" "$@"
