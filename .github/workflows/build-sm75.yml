@@ -59,9 +59,17 @@ jobs:
           cp config/strata-single-2080ti-22g-vision.example.json offline-bundle/config/strata-single-2080ti-22g-vision.json
           cp data/expert-profile.bin offline-bundle/data/expert-profile.bin
           cp -a serve offline-bundle/serve
+          # The server imports the shared Control helpers at startup (for
+          # example serve/lifeline.py imports strata_control.procs).  Keep the
+          # package in the offline bundle; copying serve alone is insufficient
+          # on a clean Ubuntu host.
+          cp -a strata_control offline-bundle/strata_control
           cp tools/strata_tokenizer.py offline-bundle/tools/strata_tokenizer.py
           python3 -m pip install --no-cache-dir --target offline-bundle/python \
             numpy jinja2 regex pyyaml tqdm requests pillow psutil
+          PYTHONPATH="offline-bundle/python:offline-bundle/tools:offline-bundle" \
+            python3 -c 'import serve.server; import strata_control.procs' \
+            || { echo 'error: offline Python runtime import failed' >&2; exit 1; }
           cp -L /usr/local/cuda/lib64/libcudart.so.13* offline-bundle/lib/
           cp -L /usr/local/cuda/lib64/libcublas.so.13* offline-bundle/lib/
           cp -L /usr/local/cuda/lib64/libcublasLt.so.13* offline-bundle/lib/
