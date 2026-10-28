@@ -1,4 +1,4 @@
-name: Build CUDA 13 sm_75
+name: Build latest CUDA 13 sm_75 offline bundle
 
 on:
   push:
@@ -57,6 +57,7 @@ jobs:
           chmod 755 offline-bundle/engine/strata-vision
           cp config/strata-single-2080ti-22g.example.json offline-bundle/config/strata-single-2080ti-22g.json
           cp config/strata-single-2080ti-22g-vision.example.json offline-bundle/config/strata-single-2080ti-22g-vision.json
+          cp config/strata-dual-2080ti-t10-16g.example.json offline-bundle/config/strata-dual-2080ti-t10-16g.json
           cp data/expert-profile.bin offline-bundle/data/expert-profile.bin
           cp -a serve offline-bundle/serve
           # The server imports the shared Control helpers at startup (for
@@ -65,8 +66,11 @@ jobs:
           # on a clean Ubuntu host.
           cp -a strata_control offline-bundle/strata_control
           cp tools/strata_tokenizer.py offline-bundle/tools/strata_tokenizer.py
-          python3 -m pip install --no-cache-dir --target offline-bundle/python \
-            numpy jinja2 regex pyyaml tqdm requests pillow psutil
+          python3 -m pip install --no-cache-dir --target offline-bundle/python -r requirements.txt
+          printf 'Repository revision: %s\nEngine version: %s\n' \
+            "$(git rev-parse --short HEAD)" \
+            "$(sed -n 's/^project(strata VERSION \([^ ]*\).*/\1/p' CMakeLists.txt | head -n 1)" \
+            > offline-bundle/BUILD_INFO.txt
           PYTHONPATH="offline-bundle/python:offline-bundle/tools:offline-bundle" \
             python3 -c 'import serve.server; import strata_control.procs' \
             || { echo 'error: offline Python runtime import failed' >&2; exit 1; }
@@ -101,16 +105,20 @@ jobs:
           ldd offline-bundle/engine/strata-vision | grep -E 'libcuda|libcudart|libcublas' || true
           ldd offline-bundle/engine/strata | grep -E 'libcuda|libcudart|libcublas' || true
           cat > offline-bundle/README.txt <<'EOF'
-          Strata RTX 2080 Ti single-card offline bundle
+          Strata CUDA 13 sm_75 offline bundle
+
+          See BUILD_INFO.txt for the source revision and engine version.
 
           Put Strata-data next to this directory:
             ../Strata-data/models/
             ../Strata-data/packs/swift-iq3_xxs/
             ../Strata-data/mtp/rt/
 
-          Run: ./run-strata.sh
-          This bundle includes the Python server dependencies and CUDA 13 runtime libraries.
-          For image input, use config/strata-single-2080ti-22g-vision.json.
+          Run the default single-card config: ./run-strata.sh
+          This bundle includes Python dependencies, CUDA 13 runtime libraries and strata-vision.
+          Other configs can be selected by setting STRATA_CONFIG before running:
+            STRATA_CONFIG=config/strata-single-2080ti-22g-vision.json ./run-strata.sh
+            STRATA_CONFIG=config/strata-dual-2080ti-t10-16g.json ./run-strata.sh
           EOF
           tar -C offline-bundle -czf strata-sm75-ubuntu-cuda13-offline.tar.gz .
 
