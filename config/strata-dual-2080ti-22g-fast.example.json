@@ -6,7 +6,7 @@
   "--ple-gguf", "../Strata-data/models/swift-IQ3_XXS/Swift-Qwen3.8-Flash-Next-GSQ-RCO-IQ3_XXS-00001-of-00002.gguf",
   "--expert-profile", "data/expert-profile.bin",
   "--expert-cache", "auto",
-  "--prefill", "auto",
+  "--prefill", "auto:8192",
   "--lookup-chain", "4",
   "--mtp-hnorm", "stream",
   "--spec", "4",
@@ -22,9 +22,10 @@
   "--ple-inflight", "1024",
   "--conversation-cache-mib", "13312",
   "--conversation-cache-slots", "1",
-  "--spec-min-p", "0.50",
+  "--spec-min-p", "0.70",
   "--host-core", "last",
   "--short-read", "32",
+  "--pcie-frac", "0.35",
   "--pipeline-windows", "2",
   "--trim-stage-weights",
   "--aux-cpus", "auto"
@@ -37,7 +38,7 @@
  "port": 8000,
  "gpu": [0, 1],
  "gpu_order": "as_given",
- "layer_split": "24",
+ "layer_split": "26",
  "gpus_asked": true,
  "host": "127.0.0.1",
  "aliases": ["swift-1.5-iq3_xxs-dual-2080ti-22g-fast"],
@@ -51,6 +52,10 @@
   "STRATA_PA_V2T": "1",
   "STRATA_PF_FUSED": "1",
   "STRATA_PF_FUSED_SM75": "1",
-  "STRATA_STAGE_TRIM": "1"
+  "STRATA_STAGE_TRIM": "1",
+  "STRATA_SPLIT_OWN": "0",
+  "STRATA_SPLIT_MTP_BATCH": "1",
+  "STRATA_SPLIT_RING": "384",
+  "STRATA_PREFILL_HELP": "1"
  }
 }
