@@ -58,6 +58,7 @@ jobs:
           cp config/strata-single-2080ti-22g.example.json offline-bundle/config/strata-single-2080ti-22g.json
           cp config/strata-single-2080ti-22g-vision.example.json offline-bundle/config/strata-single-2080ti-22g-vision.json
           cp config/strata-dual-2080ti-t10-16g.example.json offline-bundle/config/strata-dual-2080ti-t10-16g.json
+          cp config/strata-dual-2080ti-22g-fast.example.json offline-bundle/config/strata-dual-2080ti-22g-fast.json
           cp data/expert-profile.bin offline-bundle/data/expert-profile.bin
           cp -a serve offline-bundle/serve
           # The server imports the shared Control helpers at startup (for
@@ -119,6 +120,7 @@ jobs:
           Other configs can be selected by setting STRATA_CONFIG before running:
             STRATA_CONFIG=config/strata-single-2080ti-22g-vision.json ./run-strata.sh
             STRATA_CONFIG=config/strata-dual-2080ti-t10-16g.json ./run-strata.sh
+            STRATA_CONFIG=config/strata-dual-2080ti-22g-fast.json ./run-strata.sh
           EOF
           tar -C offline-bundle -czf strata-sm75-ubuntu-cuda13-offline.tar.gz .
 
