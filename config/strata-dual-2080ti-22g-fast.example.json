@@ -43,7 +43,7 @@
  "port": 8000,
  "gpu": [0, 1],
  "gpu_order": "as_given",
- "layer_split": "26",
+ "layer_split": "24",
  "gpus_asked": true,
  "host": "127.0.0.1",
  "aliases": ["swift-1.5-iq3_xxs-dual-2080ti-22g-fast"],
