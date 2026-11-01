@@ -7,10 +7,12 @@
   "--expert-profile", "data/expert-profile.bin",
   "--expert-cache", "auto", "--prefill", "auto", "--spec", "4",
   "--mtp", "../Strata-data/mtp/rt", "--max-context", "262144", "--kv", "int8",
-  "--ple-io", "ram", "--adapt-async", "1", "--adapt-every", "2",
+  "--ple-io", "ram", "--adapt-async", "1", "--adapt-every", "1",
+  "--adapt-swaps", "160", "--adapt-decay", "0.97",
   "--resident-experts", "--vram-reserve-mib", "1400", "--ple-row-cache", "8388608",
   "--ple-inflight", "1024", "--conversation-cache-mib", "13312",
-  "--conversation-cache-slots", "4", "--spec-min-p", "0.70", "--aux-cpus", "auto",
+  "--conversation-cache-slots", "4", "--conversation-cache-min-tokens", "4000",
+  "--spec-min-p", "0.50", "--aux-cpus", "auto", "--stats",
   "--vision"
  ],
  "cwd": ".",
@@ -28,5 +30,5 @@
   "gpu": true,
   "max_tokens": 1024
  },
- "env": {"STRATA_SM75_PERF": "1", "STRATA_FORCE_ISA": "avx2", "STRATA_BF16_TC": "1", "STRATA_SELECT_SIMT": "1", "STRATA_Q2_BITPLANE": "1", "STRATA_PA_V2T": "1", "STRATA_PF_FUSED": "1", "STRATA_PF_FUSED_SM75": "1"}
+ "env": {"STRATA_SM75_PERF": "1", "STRATA_FORCE_ISA": "avx2", "STRATA_BF16_TC": "1", "STRATA_SELECT_SIMT": "1", "STRATA_Q2_BITPLANE": "1", "STRATA_PA_V2T": "1", "STRATA_PF_FUSED": "1", "STRATA_PF_FUSED_SM75": "1", "STRATA_EXP_MODE": "8"}
 }
