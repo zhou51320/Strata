@@ -2,7 +2,7 @@ name: Build latest CUDA 13 sm_75 offline bundle
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'offline-package-2080ti-*']
   pull_request:
   workflow_dispatch:
 
@@ -57,8 +57,11 @@ jobs:
           chmod 755 offline-bundle/engine/strata-vision
           cp config/strata-single-2080ti-22g.example.json offline-bundle/config/strata-single-2080ti-22g.json
           cp config/strata-single-2080ti-22g-vision.example.json offline-bundle/config/strata-single-2080ti-22g-vision.json
+          cp config/strata-single-2080ti-22g-experimental.example.json offline-bundle/config/strata-single-2080ti-22g-experimental.json
+          cp config/strata-single-2080ti-22g-fetch-experimental.example.json offline-bundle/config/strata-single-2080ti-22g-fetch-experimental.json
           cp config/strata-dual-2080ti-t10-16g.example.json offline-bundle/config/strata-dual-2080ti-t10-16g.json
           cp config/strata-dual-2080ti-22g-fast.example.json offline-bundle/config/strata-dual-2080ti-22g-fast.json
+          cp config/strata-dual-2080ti-22g-experimental.example.json offline-bundle/config/strata-dual-2080ti-22g-experimental.json
           cp data/expert-profile.bin offline-bundle/data/expert-profile.bin
           cp -a serve offline-bundle/serve
           # The server imports the shared Control helpers at startup (for
@@ -118,9 +121,20 @@ jobs:
           Run the default single-card config: ./run-strata.sh
           This bundle includes Python dependencies, CUDA 13 runtime libraries and strata-vision.
           Other configs can be selected by setting STRATA_CONFIG before running:
-            STRATA_CONFIG=config/strata-single-2080ti-22g-vision.json ./run-strata.sh
-            STRATA_CONFIG=config/strata-dual-2080ti-t10-16g.json ./run-strata.sh
-            STRATA_CONFIG=config/strata-dual-2080ti-22g-fast.json ./run-strata.sh
+          STRATA_CONFIG=config/strata-single-2080ti-22g-vision.json ./run-strata.sh
+          STRATA_CONFIG=config/strata-single-2080ti-22g-experimental.json ./run-strata.sh
+          STRATA_CONFIG=config/strata-single-2080ti-22g-fetch-experimental.json ./run-strata.sh
+          STRATA_CONFIG=config/strata-dual-2080ti-t10-16g.json ./run-strata.sh
+          STRATA_CONFIG=config/strata-dual-2080ti-22g-fast.json ./run-strata.sh
+          STRATA_CONFIG=config/strata-dual-2080ti-22g-experimental.json ./run-strata.sh
+
+          The GDN experimental configs enable the unmerged Turing path STRATA_GDN_TC=2.
+          It changes numerical rounding and affects long-prompt prefill, not ordinary decode.
+          The single-card fetch config enables the official opt-in STRATA_ADAPT_FETCH=2,
+          uses PCIe share 0.20,
+          and omits --adapt-async as required by that feature. Fetch has no layer-split or
+          pipeline support. Neither experiment has been measured on an RTX 2080 Ti; compare
+          with the matching stable config and check output quality.
           EOF
           tar -C offline-bundle -czf strata-sm75-ubuntu-cuda13-offline.tar.gz .
 
