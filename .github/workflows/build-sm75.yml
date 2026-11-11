@@ -130,6 +130,10 @@ jobs:
 
           The GDN experimental configs enable the unmerged Turing path STRATA_GDN_TC=2.
           It changes numerical rounding and affects long-prompt prefill, not ordinary decode.
+          The engine also includes the unmerged Turing MMVQ-IL wide-window path from PR #5137.
+          It is enabled by STRATA_SM75_PERF=1 (including the 5-8 token sm_75 table and
+          position-major activation layout); it is bitwise with the plain path. The published
+          microbenchmarks cover RTX 2080 Ti/CMP 50HX, but no end-to-end IQ3_XXS result is claimed.
           The single-card fetch config enables the official opt-in STRATA_ADAPT_FETCH=2,
           uses PCIe share 0.20,
           and omits --adapt-async as required by that feature. Fetch has no layer-split or
